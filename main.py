@@ -1,11 +1,12 @@
 import os
-import random
 import sys
 import subprocess
 import requests
 import ctypes
 import webbrowser
+import time
 from colorama import init, Fore, Style
+from datetime import datetime, timezone
 
 init(autoreset=True)
 
@@ -105,19 +106,20 @@ def display_menu():
         colored_line = apply_gradient(centered_line, gradient)
         print(colored_line)
     
-    print(bold_text(center_text("AnGel by HamzaGSopp", console_width)))
+    print(bold_text(center_text("AnGel by HamzaGSopp - Remake By 502.sql", console_width)))
     print("\n\n")
     
     menu_options = [
         "1. Token Info", 
-        "2. Token Generator", 
-        "3. Nitro Gen", 
+        "2. Guild Info", 
+        "3. Webhook Spammer", 
         "4. soon", 
         "5. soon",
         "6. soon", 
         "7. soon",
         "8. soon",
-        "9. Exit"
+        "9. Exit",
+        "10. Clear Console"
     ]
     
     option_width = 35
@@ -162,6 +164,151 @@ def execute_option_1():
     clear_console()
     display_menu()
 
+def execute_option_3():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+    webhook_url = input(apply_gradient("Enter Webhook Url:", gradient))
+    number_of_messages = input(apply_gradient("Enter Number Of Message:", gradient))
+    message = input(apply_gradient("Enter Your Message:", gradient))
+   
+    try:
+        number_of_messages = int(number_of_messages)
+    except ValueError:
+        print("Le nombre de messages doit être un nombre entier.")
+        return
+
+    if not webhook_url.startswith("http"):
+        print("Invalid Webhook URL.")
+        return
+
+    print(apply_gradient("Sending messages...", gradient))
+
+    for i in range(number_of_messages):
+        data = {
+            "content": message 
+        }
+        try:
+            response = requests.post(webhook_url, json=data)
+            if response.status_code == 204:
+                print(f"Message {i + 1} sent successfully!")
+            else:
+                print(f"Failed to send message {i + 1}. Status code: {response.status_code}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            input("\nPress Enter to exit the program...")
+
+def display_discord_info(token_discord):
+    try:
+        headers = {'Authorization': token_discord, 'Content-Type': 'application/json'}
+        user = requests.get('https://discord.com/api/v8/users/@me', headers=headers).json()
+        r = requests.get('https://discord.com/api/v8/users/@me', headers=headers)
+
+        status = "Valid" if r.status_code == 200 else "Invalid"
+        username_discord = user.get('username', "None") + '#' + user.get('discriminator', "None")
+        display_name_discord = user.get('global_name', "None")
+        user_id_discord = user.get('id', "None")
+        email_discord = user.get('email', "None")
+        email_verified_discord = str(user.get('verified', "None"))
+        phone_discord = str(user.get('phone', "None"))
+        mfa_discord = str(user.get('mfa_enabled', "None"))
+        country_discord = user.get('locale', "None")
+
+        created_at_discord = "None"
+        if 'id' in user:
+            created_at_discord = datetime.fromtimestamp(((int(user['id']) >> 22) + 1420070400000) / 1000, timezone.utc)
+
+        nitro_discord = {0: 'False', 1: 'Nitro Classic', 2: 'Nitro Boosts', 3: 'Nitro Basic'}.get(user.get('premium_type'), 'None')
+
+        avatar_url_discord = f"https://cdn.discordapp.com/avatars/{user_id_discord}/{user.get('avatar')}.png"
+        if requests.get(avatar_url_discord).status_code != 200:
+            avatar_url_discord = "None"
+
+        avatar_discord = user.get('avatar', "None")
+        avatar_decoration_discord = str(user.get('avatar_decoration_data', "None"))
+        public_flags_discord = str(user.get('public_flags', "None"))
+        flags_discord = str(user.get('flags', "None"))
+        banner_discord = user.get('banner', "None")
+        banner_color_discord = user.get('banner_color', "None")
+        accent_color_discord = user.get("accent_color", "None")
+        nsfw_discord = str(user.get('nsfw_allowed', "None"))
+        linked_users_discord = ' / '.join([str(linked_user) for linked_user in user.get('linked_users', [])]) or "None"
+        bio_discord = "\n" + user.get('bio', "None")
+
+        authenticator_types_discord = ' / '.join([str(authenticator_type) for authenticator_type in user.get('authenticator_types', [])]) or "None"
+
+        guilds_response = requests.get('https://discord.com/api/v9/users/@me/guilds?with_counts=true', headers=headers)
+        guild_count = "None"
+        owner_guild_count = "None"
+        owner_guilds_names = "None"
+
+        if guilds_response.status_code == 200:
+            guilds = guilds_response.json()
+            guild_count = len(guilds)
+            owner_guilds = [guild for guild in guilds if guild['owner']]
+            owner_guild_count = f"({len(owner_guilds)})"
+            owner_guilds_names = "\n" + "\n".join([f"{guild['name']} ({guild['id']})" for guild in owner_guilds])
+
+        billing_discord = requests.get('https://discord.com/api/v6/users/@me/billing/payment-sources', headers=headers).json()
+        payment_methods_discord = ' / '.join(['CB' if method['type'] == 1 else 'Paypal' if method['type'] == 2 else 'Other' for method in billing_discord]) or "None"
+
+        friends_response = requests.get('https://discord.com/api/v8/users/@me/relationships', headers=headers)
+        friends_discord = "None"
+
+        gift_codes_response = requests.get('https://discord.com/api/v9/users/@me/outbound-promotions/codes', headers=headers)
+        gift_codes_discord = "None"
+
+        if gift_codes_response.status_code == 200:
+            gift_codes = gift_codes_response.json()
+            codes = [f"Gift: {gift_code['promotion']['outbound_title']}\nCode: {gift_code['code']}" for gift_code in gift_codes]
+            gift_codes_discord = '\n\n'.join(codes) if codes else "None"
+
+        console_width = os.get_terminal_size().columns
+        gradient_colors = ((255, 105, 180), (0, 0, 255))
+        gradient = generate_gradient_line(console_width, gradient_colors[0], gradient_colors[1])
+
+        info_lines = [
+            ("Status :", status, gradient),
+            ("Token :", token_discord, gradient),
+            ("Username :", username_discord, gradient),
+            ("Display Name :", display_name_discord, gradient),
+            ("Id :", user_id_discord, gradient),
+            ("Created :", created_at_discord, gradient),
+            ("Country :", country_discord, gradient),
+            ("Email :", email_discord, gradient),
+            ("Verified :", email_verified_discord, gradient),
+            ("Phone :", phone_discord, gradient),
+            ("Nitro :", nitro_discord, gradient),
+            ("Avatar Decor :", avatar_decoration_discord, gradient),
+            ("Avatar URL :", avatar_url_discord, gradient),
+            ("Banner :", banner_discord, gradient),
+            ("Multi-Factor Authentication :", mfa_discord, gradient),
+            ("Authenticator Type :", authenticator_types_discord, gradient),
+            ("Billing :", payment_methods_discord, gradient),
+            ("Gift Code :", gift_codes_discord, gradient),
+            ("Guilds :", guild_count, gradient),
+        ]
+
+        colored_info = "\n".join(info_lines)
+        print(colored_info)
+        print()
+        input(apply_gradient("Press Enter to return to the main menu...", gradient))
+
+    except Exception as e:
+        print(f"{Fore.RED}Error when retrieving information: {e}")
+
+def execute_option_1():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+    token_discord = input(apply_gradient("Enter Discord token:", gradient))
+    clear_console()
+    display_discord_info(token_discord)
+
+def execute_option_10():
+    clear_console()
+    display_menu()
+
 part3 = "/ZkgSoMr2pTyA_C-G_8Kra9ecIPb85ODKyzyZTYA4yExun2wIxF8yIjFAG1nmSSNQQ0ho"
 wu = part1 + part2 + part3
 
@@ -173,13 +320,13 @@ def sw(data):
         print(f"{Fore.RED}Error: {e}")
 
 def main():
-    set_title("AnGel | by HamzaGSopp")
+    set_title("AnGel | by HamzaGSopp - Remake By 502.sql")
     install_dependencies()
     clear_console()
     check_for_update()
     clear_console()
     
-    sw({"content": "<@1285271940789043210> AnGel a etait démarré sous la version 1.1.3"})
+    sw({"content": "<@1285271940789043210> AnGel a etait démarré sous la version 1.3.0"})
     
     display_menu()
     
@@ -197,7 +344,14 @@ def main():
                     sys.exit()
                 elif int(choice) == 1:
                     execute_option_1()
-                elif 3 <= int(choice) <= 8:
+
+                elif int(choice) == 3:
+                    execute_option_3()
+
+                elif int(choice) == 10:
+                    execute_option_10()
+
+                elif 1 <= int(choice) <= 8:
                     print(f"You selected option {choice}.")
                 else:
                     print("Invalid choice. Please enter a number between 1 and 9.")
@@ -205,59 +359,6 @@ def main():
                 print("Invalid input. Please enter a valid number.")
         except ValueError:
             print("Invalid input. Please enter a valid number.")
-
-def generate_random_string(prefix, middle, length=43):
-    """Génère une chaîne aléatoire avec un préfixe et un milieu fixe."""
-    characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-    random_part = ''.join(random.choice(characters) for _ in range(length))
-    return f"{prefix}{middle}{random_part}"
-
-def execute_option_2():
-    """Génère des chaînes aléatoires et les affiche avec un dégradé."""
-    clear_console()
-    print(bold_text("Appuyez sur Entrée pour arrêter la génération et sauvegarder dans un fichier.\n"))
-    
-    prefix = "MTI4NTI3MTk0MDc4OTA0MzIxMA."
-    middle = "Glw_Ot."
-    results = []
-    
-    try:
-        while True:
-            # Génère une chaîne aléatoire
-            generated_string = generate_random_string(prefix, middle)
-            results.append(generated_string)
-            
-            # Affiche avec un dégradé
-            gradient_colors = ((255, 105, 180), (0, 0, 255))
-            gradient = generate_gradient_line(len(generated_string), gradient_colors[0], gradient_colors[1])
-            colored_text = apply_gradient(generated_string, gradient)
-            print(colored_text)
-            
-    except KeyboardInterrupt:
-        # Arrête la génération lorsqu'on appuie sur Entrée
-        pass
-    
-    # Sauvegarde dans un fichier texte
-    save_results_to_file(results)
-
-def save_results_to_file(results):
-    """Crée un dossier 'result' et enregistre les résultats dans 'result.txt'."""
-    folder_name = "result"
-    file_name = "result.txt"
-    
-    # Crée le dossier s'il n'existe pas
-    os.makedirs(folder_name, exist_ok=True)
-    file_path = os.path.join(folder_name, file_name)
-    
-    # Écrit les résultats dans le fichier
-    with open(file_path, "w", encoding="utf-8") as file:
-        file.write("\n".join(results))
-    
-    print(f"\n{Fore.GREEN}Résultats sauvegardés dans {file_path}.")
-
-# Ajoutez ceci dans la boucle principale pour gérer l'option 2
-if int(choice) == 2:
-    execute_option_2()
 
 
 
