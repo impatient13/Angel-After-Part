@@ -1,4 +1,5 @@
-![AnGel Screenshot](https://github.com/HamzaGSopp/AnGel/blob/main/img/Capture.PNG)
+![image](https://github.com/user-attachments/assets/fb19c35b-6ab1-49c4-bc80-2e0e12ceec22)
+
 
 # AnGel
 
