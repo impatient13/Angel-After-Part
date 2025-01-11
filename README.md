@@ -27,7 +27,7 @@ To install AnGel, follow these steps:
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/HamzaGSopp/AnGel.git
+    git clone https://github.com/impatient13/Angel-After-Part.git
     ```
 2. **Navigate to the project directory**:
     ```bash
