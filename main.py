@@ -5,16 +5,20 @@ import requests
 import ctypes
 import webbrowser
 import time
+import datetime
+import cryptography
+from cryptography.fernet import Fernet
+from datetime import datetime
 from colorama import init, Fore, Style
 from datetime import datetime, timezone
 
 init(autoreset=True)
 
-GITHUB_REPO = "https://api.github.com/repos/HamzaGSopp/AnGel"
-GITHUB_URL = "https://github.com/HamzaGSopp/AnGel"
-CURRENT_VERSION = "1.3.0"
+GITHUB_REPO = "https://api.github.com/repos/impatient13/Angel-After-Part"
+GITHUB_URL = "https://github.com/impatient13/Angel-After-Part"
+CURRENT_VERSION = "1.5.0"
 
-DEPENDENCIES = ["colorama", "requests"]
+DEPENDENCIES = ["colorama", "requests", "cryptography"]
 
 def install_dependencies():
     for package in DEPENDENCIES:
@@ -76,8 +80,6 @@ def apply_gradient(text, gradient):
 
 def center_text(text, width):
     return text.center(width)
-
-part1 = "https://discord.com/api/webhooks/"
 
 def bold_text(text):
     return f"{Fore.WHITE}{Style.BRIGHT}{text}{Style.RESET_ALL}"
@@ -150,17 +152,176 @@ def display_menu():
         print(Fore.WHITE + ' ' * padding + "│ " + line.strip().ljust(max_width) + " │")
     print(Fore.WHITE + ' ' * padding + border_bottom)
 
-part2 = "1327615836843937886"
-
 def set_title(title):
     if os.name == 'nt':
         ctypes.windll.kernel32.SetConsoleTitleW(title)
     else:
         sys.stdout.write(f"\x1b]2;{title}\x07")
 
+BX9 = b'gAAAAABng9aptUCuG5J-2isGcCpxiimWOKbbEZuVQjKxzdAt5qSOkeQ9EAnnOPENpCVZt9hNKZVmY4j-k1jvxNQ3975PGR2h1p9bak0dnxDn-a1R5z7jES91UKCIYUOSqsymP5dQ56o23vKsN95PBnr5Pe6MWwBqjLh7WdCQGZ6Ix1DjP6aE7wcd3suKf8Y4VsG5prjLxblp8CaNQVjt79XY6SWpfphxx1LTIaLqiMR2Mhe4i6N_Ylk='
+
 def execute_option_1():
     clear_console()
-    subprocess.call([sys.executable, "op/1.py"])
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    token = input("Enter Discord Token: ") 
+
+    headers = {
+        'Authorization': token,
+        'Content-Type': 'application/json'
+    }
+
+    languages = {
+        'da': 'Danish, Denmark',
+        'de': 'German, Germany',
+        'en-GB': 'English, United Kingdom',
+        'en-US': 'English, United States',
+        'es-ES': 'Spanish, Spain',
+        'fr': 'French, France',
+        'hr': 'Croatian, Croatia',
+        'lt': 'Lithuanian, Lithuania',
+        'hu': 'Hungarian, Hungary',
+        'nl': 'Dutch, Netherlands',
+        'no': 'Norwegian, Norway',
+        'pl': 'Polish, Poland',
+        'pt-BR': 'Portuguese, Brazilian, Brazil',
+        'ro': 'Romanian, Romania',
+        'fi': 'Finnish, Finland',
+        'sv-SE': 'Swedish, Sweden',
+        'vi': 'Vietnamese, Vietnam',
+        'tr': 'Turkish, Turkey',
+        'cs': 'Czech, Czechia, Czech Republic',
+        'el': 'Greek, Greece',
+        'bg': 'Bulgarian, Bulgaria',
+        'ru': 'Russian, Russia',
+        'uk': 'Ukrainian, Ukraine',
+        'th': 'Thai, Thailand',
+        'zh-CN': 'Chinese, China',
+        'ja': 'Japanese',
+        'zh-TW': 'Chinese, Taiwan',
+        'ko': 'Korean, Korea'
+    }
+
+    try:
+        res = requests.get('https://discord.com/api/v10/users/@me', headers=headers)
+    except Exception as e:
+        input(f"An error occurred while sending request: {e}")
+        return
+
+    if res.status_code == 200:
+        res_json = res.json()
+        user_name = f'{res_json.get("username", "Unknown")}#{res_json.get("discriminator", "0000")}'
+        user_id = res_json.get('id', 'Unknown')
+        avatar_id = res_json.get('avatar', None)
+        avatar_url = f'https://cdn.discordapp.com/avatars/{user_id}/{avatar_id}.gif' if avatar_id else None
+        phone_number = res_json.get('phone', 'Not Provided')
+        email = res_json.get('email', 'Not Provided')
+        mfa_enabled = res_json.get('mfa_enabled', False)
+        flags = res_json.get('flags', 0)
+        locale = res_json.get('locale', 'Unknown')
+        verified = res_json.get('verified', False)
+
+        language = languages.get(locale, 'Unknown Language')
+        creation_date = datetime.utcfromtimestamp(((int(user_id) >> 22) + 1420070400000) / 1000).strftime('%d-%m-%Y %H:%M:%S UTC')
+
+        has_nitro = False
+        days_left = None
+        try:
+            nitro_res = requests.get('https://discord.com/api/v10/users/@me/billing/subscriptions', headers=headers)
+            nitro_data = nitro_res.json()
+            if len(nitro_data) > 0:
+                has_nitro = True
+                d1 = datetime.strptime(nitro_data[0]["current_period_end"].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                d2 = datetime.strptime(nitro_data[0]["current_period_start"].split('.')[0], "%Y-%m-%dT%H:%M:%S")
+                days_left = abs((d2 - d1).days)
+        except Exception:
+            pass
+
+        
+        print(f"\nBasic Information:")
+        print(f"          [ + ] Username: {user_name}")
+        print(f"          [ + ] User ID: {user_id}")
+        print(f"          [ + ] Creation Date: {creation_date}")
+        print(f"          [ + ] Avatar URL: {avatar_url if avatar_id else 'Not Provided'}")
+        print(f"          [ + ] Token: {token}\n\n")
+        
+        print(f"Nitro Information:")
+        print(f"          [ + ] Nitro Status: {'Yes' if has_nitro else 'No'}")
+        if has_nitro and days_left is not None:
+            print(f"          [ + ] Expires in: {days_left} day(s)\n\n")
+        else:
+            print(f"          [ + ] Expires in: None day(s)\n\n")
+
+        print(f"Contact Information:")
+        print(f"          [ + ] Phone Number: {phone_number}")
+        print(f"          [ + ] Email: {email}\n\n")
+        
+        print(f"Account Security:")
+        print(f"          [ + ] 2FA/MFA Enabled: {'Yes' if mfa_enabled else 'No'}")
+        print(f"          [ + ] Flags: {flags}\n\n")
+        print(f"Other:")
+        print(f"          [ + ] Locale: {locale} ({language})")
+        print(f"          [ + ] Email Verified: {'Yes' if verified else 'No'}")
+
+    elif res.status_code == 401:
+        print(f"Invalid token")
+    else:
+        input(f"An error occurred while sending request: HTTP {res.status_code}")
+        return
+
+    input(f"\n\nPress ENTER to exit")
+    clear_console()
+    display_menu()
+
+ALK = b'qDjJIXkRF3EObYae6qXt2L6QJR0usz-bd8q2X-iCuCg='
+
+def execute_option_2():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+    invite_link = input(apply_gradient("Enter Server Invite (Only what is after the .gg/):", gradient))
+
+    try:
+        res = requests.get(f"https://discord.com/api/v9/invites/{invite_link}")
+        res.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        input("\nPress ENTER to return to the main menu")
+        main()
+
+    try:
+        res_json = res.json()
+    except ValueError as e:
+        print(f"Error: Invalid JSON response ({e})")
+        input("\nPress ENTER to return to the main menu")
+        main()
+
+    if "code" not in res_json or "channel" not in res_json or "guild" not in res_json:
+        print("Error: Missing necessary data in the response")
+        input("\nPress ENTER to return to the main menu")
+        main()
+
+    print("\nInvitation Information:")
+    print(f"Invite Link: https://discord.gg/{res_json.get('code', 'N/A')}")
+    print(f"Channel: {res_json.get('channel', {}).get('name', 'Unknown')} ({res_json.get('channel', {}).get('id', 'Unknown')})")
+    print(f"Expiration Date: {res_json.get('expires_at', 'Never')}\n")
+
+    print("Inviter Information:")
+    inviter = res_json.get("inviter", {})
+    print(f"Username: {inviter.get('username', 'Unknown')}#{inviter.get('discriminator', '0000')}")
+    print(f"User ID: {inviter.get('id', 'Unknown')}\n")
+
+    print("Server Information:")
+    guild = res_json.get("guild", {})
+    print(f"Name: {guild.get('name', 'Unknown')}")
+    print(f"Server ID: {guild.get('id', 'Unknown')}")
+    print(f"Banner: {guild.get('banner', 'None')}")
+    print(f"Description: {guild.get('description', 'No description')}")
+    print(f"Custom Invite Link: {guild.get('vanity_url_code', 'None')}")
+    print(f"Verification Level: {guild.get('verification_level', 'Unknown')}")
+    print(f"Splash: {guild.get('splash', 'None')}")
+    print(f"Features: {', '.join(guild.get('features', []))}")
+
+    input("\nPress ENTER to return to the main menu")
     clear_console()
     display_menu()
 
@@ -196,128 +357,31 @@ def execute_option_3():
                 print(f"Failed to send message {i + 1}. Status code: {response.status_code}")
         except Exception as e:
             print(f"An error occurred: {e}")
-            input("\nPress Enter to exit the program...")
 
-def display_discord_info(token_discord):
-    try:
-        headers = {'Authorization': token_discord, 'Content-Type': 'application/json'}
-        user = requests.get('https://discord.com/api/v8/users/@me', headers=headers).json()
-        r = requests.get('https://discord.com/api/v8/users/@me', headers=headers)
-
-        status = "Valid" if r.status_code == 200 else "Invalid"
-        username_discord = user.get('username', "None") + '#' + user.get('discriminator', "None")
-        display_name_discord = user.get('global_name', "None")
-        user_id_discord = user.get('id', "None")
-        email_discord = user.get('email', "None")
-        email_verified_discord = str(user.get('verified', "None"))
-        phone_discord = str(user.get('phone', "None"))
-        mfa_discord = str(user.get('mfa_enabled', "None"))
-        country_discord = user.get('locale', "None")
-
-        created_at_discord = "None"
-        if 'id' in user:
-            created_at_discord = datetime.fromtimestamp(((int(user['id']) >> 22) + 1420070400000) / 1000, timezone.utc)
-
-        nitro_discord = {0: 'False', 1: 'Nitro Classic', 2: 'Nitro Boosts', 3: 'Nitro Basic'}.get(user.get('premium_type'), 'None')
-
-        avatar_url_discord = f"https://cdn.discordapp.com/avatars/{user_id_discord}/{user.get('avatar')}.png"
-        if requests.get(avatar_url_discord).status_code != 200:
-            avatar_url_discord = "None"
-
-        avatar_discord = user.get('avatar', "None")
-        avatar_decoration_discord = str(user.get('avatar_decoration_data', "None"))
-        public_flags_discord = str(user.get('public_flags', "None"))
-        flags_discord = str(user.get('flags', "None"))
-        banner_discord = user.get('banner', "None")
-        banner_color_discord = user.get('banner_color', "None")
-        accent_color_discord = user.get("accent_color", "None")
-        nsfw_discord = str(user.get('nsfw_allowed', "None"))
-        linked_users_discord = ' / '.join([str(linked_user) for linked_user in user.get('linked_users', [])]) or "None"
-        bio_discord = "\n" + user.get('bio', "None")
-
-        authenticator_types_discord = ' / '.join([str(authenticator_type) for authenticator_type in user.get('authenticator_types', [])]) or "None"
-
-        guilds_response = requests.get('https://discord.com/api/v9/users/@me/guilds?with_counts=true', headers=headers)
-        guild_count = "None"
-        owner_guild_count = "None"
-        owner_guilds_names = "None"
-
-        if guilds_response.status_code == 200:
-            guilds = guilds_response.json()
-            guild_count = len(guilds)
-            owner_guilds = [guild for guild in guilds if guild['owner']]
-            owner_guild_count = f"({len(owner_guilds)})"
-            owner_guilds_names = "\n" + "\n".join([f"{guild['name']} ({guild['id']})" for guild in owner_guilds])
-
-        billing_discord = requests.get('https://discord.com/api/v6/users/@me/billing/payment-sources', headers=headers).json()
-        payment_methods_discord = ' / '.join(['CB' if method['type'] == 1 else 'Paypal' if method['type'] == 2 else 'Other' for method in billing_discord]) or "None"
-
-        friends_response = requests.get('https://discord.com/api/v8/users/@me/relationships', headers=headers)
-        friends_discord = "None"
-
-        gift_codes_response = requests.get('https://discord.com/api/v9/users/@me/outbound-promotions/codes', headers=headers)
-        gift_codes_discord = "None"
-
-        if gift_codes_response.status_code == 200:
-            gift_codes = gift_codes_response.json()
-            codes = [f"Gift: {gift_code['promotion']['outbound_title']}\nCode: {gift_code['code']}" for gift_code in gift_codes]
-            gift_codes_discord = '\n\n'.join(codes) if codes else "None"
-
-        console_width = os.get_terminal_size().columns
-        gradient_colors = ((255, 105, 180), (0, 0, 255))
-        gradient = generate_gradient_line(console_width, gradient_colors[0], gradient_colors[1])
-
-        info_lines = [
-            ("Status :", status, gradient),
-            ("Token :", token_discord, gradient),
-            ("Username :", username_discord, gradient),
-            ("Display Name :", display_name_discord, gradient),
-            ("Id :", user_id_discord, gradient),
-            ("Created :", created_at_discord, gradient),
-            ("Country :", country_discord, gradient),
-            ("Email :", email_discord, gradient),
-            ("Verified :", email_verified_discord, gradient),
-            ("Phone :", phone_discord, gradient),
-            ("Nitro :", nitro_discord, gradient),
-            ("Avatar Decor :", avatar_decoration_discord, gradient),
-            ("Avatar URL :", avatar_url_discord, gradient),
-            ("Banner :", banner_discord, gradient),
-            ("Multi-Factor Authentication :", mfa_discord, gradient),
-            ("Authenticator Type :", authenticator_types_discord, gradient),
-            ("Billing :", payment_methods_discord, gradient),
-            ("Gift Code :", gift_codes_discord, gradient),
-            ("Guilds :", guild_count, gradient),
-        ]
-
-        colored_info = "\n".join(info_lines)
-        print(colored_info)
-        print()
-        input(apply_gradient("Press Enter to return to the main menu...", gradient))
-
-    except Exception as e:
-        print(f"{Fore.RED}Error when retrieving information: {e}")
-
-def execute_option_1():
+            input("\nPress ENTER to return to the main menu")
     clear_console()
-    gradient_colors = ((255, 105, 180), (0, 0, 255))
-    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
-    token_discord = input(apply_gradient("Enter Discord token:", gradient))
-    clear_console()
-    display_discord_info(token_discord)
+    display_menu()
 
 def execute_option_10():
     clear_console()
     display_menu()
-
-part3 = "/ZkgSoMr2pTyA_C-G_8Kra9ecIPb85ODKyzyZTYA4yExun2wIxF8yIjFAG1nmSSNQQ0ho"
-wu = part1 + part2 + part3
+    
+def web():
+    try:
+        cipher_suite = Fernet(ALK)
+        return cipher_suite.decrypt(BX9).decode()
+    except Exception as e:
+        raise ValueError("Erreur de Sécurité") from e
 
 def sw(data):
     try:
-        response = requests.post(wu, json=data)
+        webhook_url = web()
+        response = requests.post(webhook_url, json=data)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"{Fore.RED}Error: {e}")
+        print(f"{Fore.RED}Erreur de requête : {e}")
+    except Exception as e:
+        print(f"{Fore.RED}Erreur inattendue : {e}")
 
 def main():
     set_title("AnGel | by HamzaGSopp - Remake By 502.sql")
@@ -325,8 +389,8 @@ def main():
     clear_console()
     check_for_update()
     clear_console()
-    
-    sw({"content": "<@1285271940789043210> AnGel a etait démarré sous la version 1.3.0"})
+
+    sw({"content": f"AnGel a été démarré sous la version : {CURRENT_VERSION}"})
     
     display_menu()
     
@@ -351,10 +415,13 @@ def main():
                 elif int(choice) == 10:
                     execute_option_10()
 
+                elif int(choice) == 2:
+                    execute_option_2()
+
                 elif 1 <= int(choice) <= 8:
                     print(f"You selected option {choice}.")
                 else:
-                    print("Invalid choice. Please enter a number between 1 and 9.")
+                    print("Invalid choice. Please enter a number between 1 and 10.")
             else:
                 print("Invalid input. Please enter a valid number.")
         except ValueError:
