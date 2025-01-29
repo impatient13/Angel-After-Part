@@ -17,7 +17,7 @@ init(autoreset=True)
 
 GITHUB_REPO = "https://api.github.com/repos/impatient13/Angel-After-Part"
 GITHUB_URL = "https://github.com/impatient13/Angel-After-Part"
-CURRENT_VERSION = "1.5.1"
+CURRENT_VERSION = "1.6.0"
 
 DEPENDENCIES = ["colorama", "requests", "cryptography"]
 
