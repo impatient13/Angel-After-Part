@@ -7,6 +7,7 @@ import webbrowser
 import time
 import datetime
 import cryptography
+import socket
 from cryptography.fernet import Fernet
 from datetime import datetime
 from colorama import init, Fore, Style
@@ -115,11 +116,11 @@ def display_menu():
         "1. Token Info", 
         "2. Guild Info", 
         "3. Webhook Spammer", 
-        "4. soon", 
-        "5. soon",
-        "6. soon", 
-        "7. soon",
-        "8. soon",
+        "4. IP Lookup", 
+        "5. Port Scanner",
+        "6. URL TO IP", 
+        "7. TEMP MAIL",
+        "8. Py to Exe",
         "9. Exit",
         "10. Clear Console"
     ]
@@ -362,6 +363,203 @@ def execute_option_3():
     clear_console()
     display_menu()
 
+def execute_option_4():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+    
+    ip_address = input(apply_gradient("Enter IP Address for Lookup: ", gradient))
+    
+    api_url = f"http://ip-api.com/json/{ip_address}"
+    
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        ip_data = response.json()
+        
+        if ip_data['status'] == "fail":
+            print(f"{Fore.RED}Error: {ip_data.get('message', 'Unknown error')}")
+        else:
+            print("\nIP Address Information:")
+            print(f"  [ + ] IP: {ip_data.get('query', 'N/A')}")
+            print(f"  [ + ] Country: {ip_data.get('country', 'N/A')} ({ip_data.get('countryCode', 'N/A')})")
+            print(f"  [ + ] Region: {ip_data.get('regionName', 'N/A')} ({ip_data.get('region', 'N/A')})")
+            print(f"  [ + ] City: {ip_data.get('city', 'N/A')}")
+            print(f"  [ + ] ZIP: {ip_data.get('zip', 'N/A')}")
+            print(f"  [ + ] Latitude: {ip_data.get('lat', 'N/A')}")
+            print(f"  [ + ] Longitude: {ip_data.get('lon', 'N/A')}")
+            print(f"  [ + ] Timezone: {ip_data.get('timezone', 'N/A')}")
+            print(f"  [ + ] ISP: {ip_data.get('isp', 'N/A')}")
+            print(f"  [ + ] Organization: {ip_data.get('org', 'N/A')}")
+            print(f"  [ + ] AS: {ip_data.get('as', 'N/A')}")
+    except requests.RequestException as e:
+        print(f"{Fore.RED}An error occurred while fetching IP information: {e}")
+    except Exception as e:
+        print(f"{Fore.RED}Unexpected error: {e}")
+    
+    input("\nPress ENTER to return to the main menu")
+    clear_console()
+    display_menu()
+
+def execute_option_8():
+    clear_console()
+    print(f"{Fore.CYAN}[ i ] Python to EXE Converter using PyInstaller\n")
+
+    file_path = input(f"{Fore.GREEN}Enter the full path to the Python file (.py): ").strip()
+
+    if not os.path.isfile(file_path):
+        print(f"{Fore.RED}[ ! ] The file path does not exist or is not a valid file.")
+        input("\nPress ENTER to return to the main menu")
+        clear_console()
+        display_menu()
+        return
+
+    if not file_path.endswith(".py"):
+        print(f"{Fore.RED}[ ! ] The file is not a Python (.py) file.")
+        input("\nPress ENTER to return to the main menu")
+        clear_console()
+        display_menu()
+        return
+
+    console_mode = input(f"{Fore.GREEN}Do you want to keep the console window? (yes/no): ").strip().lower()
+    console_flag = "" if console_mode == "yes" else "--noconsole"
+
+    icon_path = input(f"{Fore.GREEN}Enter the full path to an icon file (.ico) or press ENTER to skip: ").strip()
+    icon_flag = ""
+    if icon_path:
+        if os.path.isfile(icon_path) and icon_path.endswith(".ico"):
+            icon_flag = f"--icon=\"{icon_path}\""
+        else:
+            print(f"{Fore.RED}[ ! ] The icon file path is invalid or not a .ico file. Skipping icon setting.")
+
+    output_dir = os.path.join(os.getcwd(), "dist")
+    print(f"\n{Fore.CYAN}[ i ] Generating EXE file...")
+    try:
+        command = [
+            "pyinstaller",
+            "--onefile",       
+            console_flag,      
+            icon_flag,         
+            f"\"{file_path}\""
+        ]
+        command = [arg for arg in command if arg]
+
+        subprocess.run(command, check=True)
+        print(f"\n{Fore.GREEN}[ ✓ ] Conversion successful!")
+        print(f"{Fore.CYAN}[ i ] The EXE file is located in: {output_dir}")
+    except subprocess.CalledProcessError as e:
+        print(f"{Fore.RED}[ ! ] An error occurred during the conversion process.")
+        print(e)
+    except Exception as e:
+        print(f"{Fore.RED}[ ! ] Unexpected error: {e}")
+
+    input("\nPress ENTER to return to the main menu")
+    clear_console()
+    display_menu()
+
+def execute_option_5():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+    
+    target_ip = input(apply_gradient("Enter the target IP Address for Port Scanning: ", gradient))
+    
+    try:
+        start_port = int(input(apply_gradient("Enter the start port number: ", gradient)))
+        end_port = int(input(apply_gradient("Enter the end port number: ", gradient)))
+    except ValueError:
+        print(f"{Fore.RED}Invalid port range input.")
+        input("\nPress ENTER to return to the main menu")
+        clear_console()
+        display_menu()
+        return
+
+    print(f"{Fore.CYAN}Scanning {target_ip} for open ports in the range {start_port}-{end_port}...\n")
+    
+    open_ports = []
+    
+    for port in range(start_port, end_port + 1):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        socket.setdefaulttimeout(1) 
+        result = sock.connect_ex((target_ip, port))
+        
+        if result == 0:
+            open_ports.append(port)
+        
+        sock.close()
+    
+    if open_ports:
+        print(f"{Fore.GREEN}Open Ports found: {', '.join(map(str, open_ports))}")
+    else:
+        print(f"{Fore.RED}No open ports found in the specified range.")
+    
+    input("\nPress ENTER to return to the main menu")
+    clear_console()
+    display_menu()
+
+def execute_option_6():
+    clear_console()
+    gradient_colors = ((255, 105, 180), (0, 0, 255))
+    gradient = generate_gradient_line(20, gradient_colors[0], gradient_colors[1])
+
+    url = input(apply_gradient("Enter URL (google.com):  ", gradient))
+    
+    try:
+        ip_address = socket.gethostbyname(url)
+        print(f"\n[ + ] IP Address for {url}: {ip_address}")
+    except socket.gaierror:
+        print(f"\n[ - ] Unable to resolve the URL: {url}")
+
+MAIL_TM_API_URL = "https://api.mail.tm"
+
+def get_temp_mail():
+    response = requests.post(f"{MAIL_TM_API_URL}/accounts", json={
+        "address": "temp" + str(int(time.time())) + "@mail.tm",
+        "password": "temporarypassword123"
+    })
+    
+    if response.status_code == 201:
+        account_data = response.json()
+        return account_data['address'], account_data['token']
+    else:
+        print("Erreur lors de la création de l'email temporaire.")
+        return None, None
+
+def get_inbox(email, token):
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    
+    response = requests.get(f"{MAIL_TM_API_URL}/messages", headers=headers)
+    
+    if response.status_code == 200:
+        messages = response.json()
+        return messages
+    else:
+        print("Erreur lors de la récupération des messages.")
+        return []
+
+def execute_option_7():
+    print("\n--- Temp Mail ---")
+    
+    temp_email, token = get_temp_mail()
+    
+    if temp_email:
+        print(f"Adresse e-mail temporaire générée : {temp_email}")
+        print("Attendez quelques secondes pour vérifier les messages...")
+        time.sleep(5) 
+        
+        inbox = get_inbox(temp_email, token)
+        
+        if inbox:
+            print(f"Messages reçus à {temp_email}:")
+            for message in inbox:
+                print(f"De : {message['from']}, Sujet : {message['subject']}")
+        else:
+            print("Aucun message reçu.")
+    else:
+        print("Impossible de générer un email temporaire.")
+
 def execute_option_10():
     clear_console()
     display_menu()
@@ -411,6 +609,21 @@ def main():
 
                 elif int(choice) == 3:
                     execute_option_3()
+
+                elif int(choice) == 4:
+                    execute_option_4()
+                
+                elif int(choice) == 5:
+                    execute_option_5()
+
+                elif int(choice) == 6:
+                    execute_option_6()
+
+                elif int(choice) == 7:
+                    execute_option_7()
+
+                elif int(choice) == 8:
+                    execute_option_8()
 
                 elif int(choice) == 10:
                     execute_option_10()
